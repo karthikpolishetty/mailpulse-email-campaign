@@ -63,5 +63,5 @@ A major technical achievement of this platform is the custom engagement tracking
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/karthikpolishetty/mailpulse-email-campaign.git](https://github.com/yourusername/stellarmail-marketing-platform.git)
-cd stellarmail-marketing-platform
+git clone [https://github.com/karthikpolishetty/mailpulse-email-campaign.git](https://github.com/karthikpolishetty/mailpulse-email-campaign.git)
+cd mailpulse-email-campaign
