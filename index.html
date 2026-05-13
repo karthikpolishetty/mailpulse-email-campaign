@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MailPulse Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        .ql-container {
+            min-height: 160px;
+            font-size: 14px;
+        }
+
+        .cluster-root {
+            display: none;
+        }
+
+        .cluster-root.is-active {
+            display: block;
+            animation: sectionIn 0.15s ease-out;
+        }
+
+        @keyframes sectionIn {
+            from {
+                opacity: 0.85;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .hub-panel {
+            display: none;
+        }
+
+        .hub-panel.is-open {
+            display: block;
+        }
+
+        .wiz-step {
+            display: none;
+        }
+
+        .wiz-step.is-open {
+            display: block;
+        }
+
+        .nav-btn {
+            transition: color 0.12s ease, background-color 0.12s ease, transform 0.12s ease;
+        }
+
+        .nav-btn:active {
+            transform: scale(0.98);
+        }
+
+        #chart-reports-wrap,
+        #chart-dash-bar-wrap,
+        #chart-dash-rate-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            min-height: 200px;
+        }
+
+        @media (min-width: 640px) {
+
+            #chart-reports-wrap,
+            #chart-dash-bar-wrap {
+                min-height: 260px;
+            }
+        }
+    </style>
+</head>
+
+<div id="view-login" class="min-h-screen flex items-center justify-center p-6 bg-slate-50">
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+        <div class="flex flex-col md:flex-row">
+
+            <div
+                class="bg-indigo-600 p-10 text-white flex flex-col justify-center items-center md:items-start md:w-5/12">
+                <div
+                    class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-indigo-600 font-black text-3xl mb-6 shadow-xl">
+                    S</div>
+                <p class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Secure Access</p>
+                <h1 class="text-3xl font-black tracking-tight">MailPulse</h1>
+                <p class="text-sm text-indigo-100 mt-2 opacity-80">Infinite Reach.<br>Precision Delivery.</p>
+            </div>
+
+            <div class="p-10 flex-grow bg-white">
+                <div class="mb-8">
+                    <h2 class="text-xl font-black text-slate-900">Sign in</h2>
+                    <p class="text-sm text-slate-500">Welcome back! Please enter your details.</p>
+                </div>
+
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Email</label>
+                <input id="login-email" type="email" value="admin@gmail.com"
+                    class="w-full p-3 rounded-xl border border-slate-200 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Password</label>
+                <input id="login-password" type="text" value="admin"
+                    class="w-full p-3 rounded-xl border border-slate-200 mb-6 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+
+                <p id="login-error" class="text-sm text-red-600 mb-4 hidden"></p>
+
+                <button type="button" onclick="doLogin()"
+                    class="w-full bg-slate-900 text-white font-black py-3 rounded-xl hover:bg-black shadow-lg shadow-slate-200 transition-all active:scale-[0.98]">
+                    Sign in
+                </button>
+
+                <p class="text-center text-[10px] text-slate-400 mt-6 italic">
+                    Demo Mode: Use pre-filled credentials to enter.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="view-app" class="hidden min-h-screen flex">
+    <div id="sidebar-overlay" class="hidden fixed inset-0 bg-black/40 z-30 md:hidden" onclick="closeMobileNav()"
+        aria-hidden="true"></div>
+    <aside id="app-sidebar"
+        class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 min-h-screen p-6 text-slate-400 flex flex-col shadow-2xl shrink-0 -translate-x-full md:translate-x-0 transition-transform duration-150 ease-out">
+        <div class="text-white font-black text-lg mb-8 px-2 flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-sm">S</div>
+            MailPulse
+        </div>
+        <nav class="space-y-1 text-sm font-semibold flex-1 overflow-y-auto">
+            <button type="button" data-section="cluster-data"
+                class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white text-slate-400">Data
+                Hub</button>
+            <button type="button" data-section="cluster-workflow"
+                class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white text-slate-400">Workflow
+                Hub</button>
+            <button type="button" data-section="cluster-analytics"
+                class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white text-white bg-slate-800">Analytics
+                Hub</button>
+            <button type="button" data-section="cluster-studio"
+                class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white text-slate-400">Studio
+                &amp; Settings</button>
+            <button type="button" data-section="cluster-specialty"
+                class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white text-slate-400">Specialty</button>
+            <button type="button" data-section="cluster-system"
+                class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white text-slate-400">System</button>
+        </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header
+            class="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 flex justify-between items-center sticky top-0 z-20 gap-3">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <button type="button"
+                    class="md:hidden p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 shrink-0"
+                    onclick="toggleMobileNav()" aria-label="Open menu">Menu</button>
+                <div
+                    class="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest truncate">
+                    <span class="h-2 w-2 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="truncate">Gmail SMTP Online</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p id="hdr-name" class="text-xs font-black text-slate-800">—</p>
+                    <p id="hdr-role" class="text-[10px] text-indigo-600 font-bold uppercase">—</p>
+                </div>
+                <button type="button" onclick="doLogout()"
+                    class="text-xs font-bold text-slate-600 border border-slate-200 px-4 py-2 rounded-xl hover:bg-slate-50">Logout</button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6 lg:p-8 max-w-6xl w-full mx-auto">
+
+            <!-- A: Data Hub -->
+            <section id="section-cluster-data" class="cluster-root section-panel">
+                <h2 class="text-2xl font-black text-slate-900 mb-4">Data Hub</h2>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white"
+                        data-hub="data" data-tab="lists">Contact Lists</button>
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-hub="data" data-tab="audience">Audience</button>
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-hub="data" data-tab="suppression">Suppression</button>
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-hub="data" data-tab="users">Users</button>
+                </div>
+                <div id="hub-data-lists" class="hub-panel is-open">
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button type="button" onclick="loadListSummary()"
+                            class="px-4 py-2 rounded-xl bg-slate-100 font-bold text-sm hover:bg-slate-200">Refresh</button>
+                    </div>
+                    <div id="dt-lists-grid" class="grid sm:grid-cols-2 gap-4"></div>
+                </div>
+                <div id="hub-data-audience" class="hub-panel">
+                    <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                        <input id="contacts-search" type="search" placeholder="Search…"
+                            class="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none"
+                            oninput="debouncedLoadContacts()">
+                        <select id="contacts-list-filter"
+                            class="sm:w-56 p-3 rounded-xl border border-slate-200 bg-white"
+                            onchange="loadContactsTable()">
+                            <option value="">All lists</option>
+                        </select>
+                        <select id="contacts-status-filter"
+                            class="sm:w-44 p-3 rounded-xl border border-slate-200 bg-white"
+                            onchange="loadContactsTable()">
+                            <option value="">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="unsubscribed">Unsubscribed</option>
+                            <option value="bounced">Bounced</option>
+                        </select>
+                        <button type="button" onclick="exportAudienceCsv()"
+                            class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700">Export
+                            CSV</button>
+                        <button type="button" onclick="loadContactsTable()"
+                            class="px-4 py-2 rounded-xl bg-slate-100 font-bold text-sm">Refresh</button>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-sm min-w-[520px]">
+                            <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-500">
+                                <tr>
+                                    <th class="px-4 py-3">Email</th>
+                                    <th class="px-4 py-3">Name</th>
+                                    <th class="px-4 py-3">List</th>
+                                    <th class="px-4 py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contacts-table-body" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                    <p id="contacts-table-meta" class="text-xs text-slate-400 mt-3"></p>
+                </div>
+                <div id="hub-data-suppression" class="hub-panel">
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <input id="sup-search" type="search" placeholder="Search…"
+                            class="flex-1 min-w-[200px] p-3 rounded-xl border border-slate-200"
+                            oninput="debouncedLoadSuppression()">
+                        <button type="button" onclick="loadSuppressionTable()"
+                            class="px-4 py-2 rounded-xl bg-slate-100 font-bold text-sm">Refresh</button>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-500">
+                                <tr>
+                                    <th class="px-4 py-3">Email</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sup-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="hub-data-users" class="hub-panel">
+                    <p id="users-admin-only" class="text-sm text-slate-500 mb-4 hidden">Admin access
+                        required for user management.</p>
+                    <div id="users-panel">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 mb-6">
+                            <h3 class="text-sm font-black text-slate-400 uppercase mb-3">Invite user</h3>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <input id="invite-email" type="email" placeholder="Email"
+                                    class="p-3 rounded-xl border border-slate-200">
+                                <select id="invite-role" class="p-3 rounded-xl border border-slate-200 bg-white">
+                                    <option value="Manager">Manager</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                                <button type="button" onclick="inviteUser()"
+                                    class="bg-indigo-600 text-white font-black py-3 rounded-xl hover:bg-indigo-700">Invite</button>
+                            </div>
+                            <p id="invite-result" class="text-xs text-slate-500 mt-2"></p>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-slate-200">
+                            <table class="w-full text-sm">
+                                <thead class="bg-slate-50 text-[10px] font-black uppercase">
+                                    <tr>
+                                        <th class="px-4 py-3">Email</th>
+                                        <th class="px-4 py-3">Role</th>
+                                        <th class="px-4 py-3">Active</th>
+                                        <th class="px-4 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- B: Workflow Hub -->
+            <section id="section-cluster-workflow" class="cluster-root section-panel">
+                <h2 class="text-2xl font-black text-slate-900 mb-4">Workflow Hub</h2>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button type="button"
+                        class="wf-main-tab px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white"
+                        data-wf="campaign">Campaign Orchestrator</button>
+                    <button type="button"
+                        class="wf-main-tab px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-wf="import">Import Contacts</button>
+                </div>
+                <div id="wf-campaign" class="wf-panel">
+                    <div class="mb-4 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div id="camp-wiz-progress" class="h-full bg-indigo-600 transition-all duration-300"
+                            style="width:25%"></div>
+                    </div>
+                    <div class="flex justify-between mb-4">
+                        <button type="button" id="camp-wiz-back" onclick="campaignWizardStep(-1)"
+                            class="px-4 py-2 rounded-xl border border-slate-200 font-bold text-sm">Back</button>
+                        <span class="text-xs font-bold text-slate-500 self-center">Step <span id="camp-wiz-num">1</span>
+                            / 4</span>
+                        <button type="button" id="camp-wiz-next"
+                            class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-sm">Next</button>
+                    </div>
+                    <div id="camp-step-0"
+                        class="wiz-step is-open bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="font-black text-slate-800">1. Campaign details</h3>
+                        <input id="camp-wiz-name" class="w-full p-3 rounded-xl border border-slate-200"
+                            placeholder="Campaign name">
+                        <input id="camp-wiz-subject" class="w-full p-3 rounded-xl border border-slate-200"
+                            placeholder="Subject line">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Preview text
+                            (optional)</label>
+                        <textarea id="camp-wiz-preview" rows="2" class="w-full p-3 rounded-xl border border-slate-200"
+                            placeholder="Shown in inbox preview"></textarea>
+                    </div>
+                    <div id="camp-step-1" class="wiz-step bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="font-black text-slate-800">2. Recipients</h3>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Contact list</label>
+                        <select id="camp-wiz-list"
+                            class="w-full p-3 rounded-xl border border-slate-200 bg-white"></select>
+                        <p class="text-xs text-slate-500">Leave empty to target all active contacts.</p>
+                    </div>
+                    <div id="camp-step-2" class="wiz-step bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="font-black text-slate-800">3. Design</h3>
+                        <div class="flex gap-2 flex-wrap">
+                            <select id="camp-wiz-template"
+                                class="flex-1 min-w-[200px] p-3 rounded-xl border border-slate-200 bg-white"></select>
+                            <button type="button" onclick="applyWizTemplate()"
+                                class="px-4 py-2 rounded-xl bg-slate-100 font-bold text-sm">Apply
+                                template</button>
+                        </div>
+                        <p class="text-xs text-slate-500">Fine-tune copy in the editor below. For template
+                            assets open <strong>Specialty</strong> hub.</p>
+                        <div id="editor-campaign" class="rounded-xl border border-slate-200 bg-white"></div>
+                    </div>
+                    <div id="camp-step-3" class="wiz-step bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="font-black text-slate-800">4. Review &amp; send</h3>
+                        <p id="camp-wiz-summary" class="text-sm text-slate-600 whitespace-pre-wrap"></p>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Schedule
+                            (optional)</label>
+                        <input id="camp-wiz-schedule" type="datetime-local"
+                            class="w-full p-3 rounded-xl border border-slate-200">
+                        <div class="flex flex-wrap gap-3">
+                            <button type="button" onclick="saveCampaignDraft()"
+                                class="bg-slate-900 text-white font-black px-5 py-3 rounded-xl">Save
+                                draft</button>
+                            <button type="button" onclick="scheduleCampaign()"
+                                class="bg-amber-500 text-white font-black px-5 py-3 rounded-xl">Schedule</button>
+                            <button type="button" onclick="sendCampaignNow()"
+                                class="bg-emerald-600 text-white font-black px-5 py-3 rounded-xl">Send
+                                now</button>
+                        </div>
+                        <p id="camp-id-hint" class="text-xs text-slate-400">Save a draft first.</p>
+                    </div>
+                </div>
+                <div id="wf-import" class="wf-panel hidden">
+                    <div class="mb-4 h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div id="imp-progress" class="h-full bg-indigo-600 transition-all" style="width:33%"></div>
+                    </div>
+                    <div class="flex justify-between mb-4">
+                        <button type="button" onclick="importWizardStep(-1)"
+                            class="px-4 py-2 rounded-xl border font-bold text-sm">Back</button>
+                        <span class="text-xs font-bold text-slate-500">Step <span id="imp-step-num">1</span>
+                            / 3</span>
+                        <button type="button" onclick="importWizardStep(1)"
+                            class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-sm">Next</button>
+                    </div>
+                    <div id="imp-step-0" class="imp-step is-open bg-white p-6 rounded-2xl border space-y-4">
+                        <h3 class="font-black">1. File</h3>
+                        <label class="text-xs font-bold uppercase text-slate-500">List name</label>
+                        <input id="list-name" type="text" value="Default"
+                            class="w-full p-3 rounded-xl border border-slate-200">
+                        <input type="file" id="csvFile" class="hidden" onchange="onCsvFile(event)">
+                        <button type="button" onclick="document.getElementById('csvFile').click()"
+                            class="bg-slate-100 px-4 py-2 rounded-xl font-bold">Select CSV</button>
+                        <p id="fileNameDisplay" class="text-xs text-slate-400">No file</p>
+                    </div>
+                    <div id="imp-step-1" class="imp-step hidden bg-white p-6 rounded-2xl border space-y-4">
+                        <h3 class="font-black">2. Preview (first 10 rows)</h3>
+                        <p class="text-xs text-slate-500">Column mapping is informational; server expects
+                            email, first_name, last_name columns.</p>
+                        <div class="overflow-x-auto rounded-xl border max-h-48 overflow-y-auto">
+                            <table class="w-full text-xs">
+                                <thead id="imp-preview-head"></thead>
+                                <tbody id="imp-preview-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="imp-step-2" class="imp-step hidden bg-white p-6 rounded-2xl border space-y-4">
+                        <h3 class="font-black">3. Import</h3>
+                        <button type="button" onclick="uploadCSV()"
+                            class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl">Run
+                            import</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- C: Analytics Hub -->
+            <section id="section-cluster-analytics" class="cluster-root section-panel is-active">
+                <h2 class="text-2xl font-black text-slate-900 mb-4">Analytics Hub</h2>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white"
+                        data-hub="analytics" data-tab="dash">Dashboard</button>
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-hub="analytics" data-tab="insights">Insights</button>
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-hub="analytics" data-tab="creport">Campaign report</button>
+                </div>
+                <div id="hub-analytics-dash" class="hub-panel is-open">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6" id="kpi-mount">
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200">
+                            <h3 class="text-xs font-black text-slate-400 uppercase mb-2">Delivery &amp;
+                                engagement</h3>
+                            <div id="chart-dash-bar-wrap" class="min-h-[220px]"><canvas id="chart-dash-bar"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200">
+                            <h3 class="text-xs font-black text-slate-400 uppercase mb-2">Open vs click rate
+                            </h3>
+                            <div id="chart-dash-rate-wrap" class="min-h-[220px]"><canvas id="chart-dash-rate"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 rounded-[2rem] p-6 shadow-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                Activity</h4>
+                            <button type="button" onclick="updateStats(); processDue(); loadDashboardCharts();"
+                                class="text-[10px] text-slate-400 hover:text-white underline">Refresh</button>
+                        </div>
+                        <div id="terminal" class="font-mono text-emerald-400 text-xs h-32 overflow-y-auto">
+                        </div>
+                    </div>
+                </div>
+                <div id="hub-analytics-insights" class="hub-panel">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 mb-6">
+                        <h3 class="text-sm font-black text-slate-400 uppercase mb-4">Overview</h3>
+                        <div id="chart-reports-wrap" class="mb-6"><canvas id="chart-reports"></canvas></div>
+                        <h3 class="text-sm font-black text-slate-400 uppercase mb-2">Live activity</h3>
+                        <ul id="reports-activity-feed"
+                            class="text-sm border border-slate-100 rounded-xl divide-y max-h-64 overflow-y-auto">
+                        </ul>
+                    </div>
+                </div>
+                <div id="hub-analytics-creport" class="hub-panel">
+                    <div class="flex gap-3 mb-4 flex-wrap">
+                        <select id="report-campaign-pick"
+                            class="p-3 rounded-xl border border-slate-200 bg-white min-w-[240px]"></select>
+                        <button type="button" onclick="loadCampaignReport()"
+                            class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold">Load
+                            report</button>
+                    </div>
+                    <div id="campaign-report-box"
+                        class="bg-white p-6 rounded-2xl border border-slate-200 text-sm text-slate-600">
+                    </div>
+                </div>
+            </section>
+
+            <!-- D+E: Studio -->
+            <section id="section-cluster-studio" class="cluster-root section-panel">
+                <h2 class="text-2xl font-black text-slate-900 mb-4">Studio &amp; Settings</h2>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white"
+                        data-hub="studio" data-tab="lib">Template library</button>
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-hub="studio" data-tab="org">Organisation</button>
+                </div>
+                <div id="hub-studio-lib" class="hub-panel is-open">
+                    <div class="flex flex-wrap gap-3 mb-4">
+                        <input id="tpl-lib-search" type="search" placeholder="Search templates…"
+                            class="flex-1 p-3 rounded-xl border border-slate-200" oninput="renderTemplateGrid()">
+                        <button type="button" onclick="seedStarters()"
+                            class="px-4 py-2 rounded-xl bg-slate-100 font-bold text-sm">Seed starter
+                            templates</button>
+                        <button type="button" onclick="loadTemplatesForGrid()"
+                            class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-sm">Refresh</button>
+                    </div>
+                    <div id="template-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+                <div id="hub-studio-org" class="hub-panel">
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 space-y-4 max-w-2xl">
+                        <label class="text-xs font-bold uppercase text-slate-500">Organisation name</label>
+                        <input id="org-name" class="w-full p-3 rounded-xl border border-slate-200">
+                        <label class="text-xs font-bold uppercase text-slate-500">Logo URL</label>
+                        <input id="org-logo" class="w-full p-3 rounded-xl border border-slate-200">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div><label class="text-xs font-bold uppercase text-slate-500">Default from
+                                    name</label><input id="org-from-name"
+                                    class="w-full p-3 rounded-xl border border-slate-200"></div>
+                            <div><label class="text-xs font-bold uppercase text-slate-500">Default from
+                                    email</label><input id="org-from-email"
+                                    class="w-full p-3 rounded-xl border border-slate-200"></div>
+                        </div>
+                        <label class="text-xs font-bold uppercase text-slate-500">AWS SES region
+                            (placeholder)</label>
+                        <input id="org-ses-region" class="w-full p-3 rounded-xl border border-slate-200"
+                            placeholder="e.g. us-east-1">
+                        <label class="text-xs font-bold uppercase text-slate-500">Notes</label>
+                        <textarea id="org-ses-note" rows="2"
+                            class="w-full p-3 rounded-xl border border-slate-200"></textarea>
+                        <button type="button" onclick="saveOrgSettings()"
+                            class="bg-indigo-600 text-white font-black px-6 py-3 rounded-xl hover:bg-indigo-700">Save</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- F: Specialty -->
+            <section id="section-cluster-specialty" class="cluster-root section-panel">
+                <h2 class="text-2xl font-black text-slate-900 mb-4">Specialty</h2>
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-900 text-white"
+                        data-hub="specialty" data-tab="seg">Segments</button>
+                    <button type="button"
+                        class="hub-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-700"
+                        data-hub="specialty" data-tab="editor">Template editor</button>
+                </div>
+                <div id="hub-specialty-seg" class="hub-panel is-open">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 max-w-lg">
+                        <label class="text-xs font-bold uppercase text-slate-500">Rule: status
+                            equals</label>
+                        <select id="seg-status" class="w-full p-3 rounded-xl border border-slate-200 mt-2 mb-4"
+                            onchange="loadSegmentPreview()">
+                            <option value="active">Active</option>
+                            <option value="unsubscribed">Unsubscribed</option>
+                            <option value="bounced">Bounced</option>
+                        </select>
+                        <p class="text-3xl font-black text-indigo-600"><span id="seg-count">0</span> <span
+                                class="text-sm font-bold text-slate-500">contacts</span></p>
+                    </div>
+                </div>
+                <div id="hub-specialty-editor" class="hub-panel">
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200">
+                        <input id="tpl-name" type="text" class="w-full p-3 rounded-xl border border-slate-200 mb-4"
+                            placeholder="Template name">
+                        <div id="editor-template" class="rounded-xl border border-slate-200 mb-4"></div>
+                        <button type="button" onclick="saveTemplate()"
+                            class="bg-indigo-600 text-white font-black px-6 py-3 rounded-xl hover:bg-indigo-700">Save
+                            template</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System -->
+            <section id="section-cluster-system" class="cluster-root section-panel">
+                <h2 class="text-2xl font-black text-slate-900 mb-6">System</h2>
+                <div class="bg-white p-8 rounded-2xl border border-slate-200 space-y-4 max-w-xl">
+                    <p class="text-sm text-slate-600">SMTP credentials are configured on the server in <code
+                            class="bg-slate-100 px-1 rounded">app.py</code>. Tracking uses <code
+                            class="bg-slate-100 px-1 rounded">PUBLIC_BASE_URL</code>.</p>
+                    <button type="button" onclick="doLogout()"
+                        class="bg-slate-900 text-white font-black px-6 py-3 rounded-xl hover:bg-black">Logout</button>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const term = () => document.getElementById('terminal');
+        let quillTemplate = null;
+        let quillCampaign = null;
+        let reportChart = null;
+        let chartDashBar = null;
+        let chartDashRate = null;
+        let currentCampaignId = null;
+        let currentSectionName = 'cluster-analytics';
+        let contactsSearchDebounce = null;
+        let supSearchDebounce = null;
+        let reportResizeDebounce = null;
+        let campaignWizStep = 0;
+        let importStep = 0;
+        let csvRawText = '';
+        let lastAudienceRows = [];
+
+        function escapeHtml(s) {
+            if (s == null || s === '') return '';
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function renderDataTable(tbodyId, columns, rows, rowHtmlFn) {
+            const tbody = document.getElementById(tbodyId);
+            if (!tbody) return;
+            tbody.innerHTML = rows.length
+                ? rows.map((r) => rowHtmlFn(r)).join('')
+                : `<tr><td colspan="${columns}" class="px-4 py-6 text-center text-slate-400">No data</td></tr>`;
+        }
+
+        function KPICard(title, value, sub) {
+            return `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${escapeHtml(title)}</p>
+                <p class="text-2xl font-black text-slate-900">${escapeHtml(String(value))}</p>
+                ${sub ? `<p class="text-[10px] text-slate-500 mt-1">${escapeHtml(sub)}</p>` : ''}
+            </div>`;
+        }
+
+        function toggleMobileNav() {
+            const sb = document.getElementById('app-sidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            if (!sb || !ov) return;
+            const closed = sb.classList.contains('-translate-x-full');
+            if (closed) { sb.classList.remove('-translate-x-full'); ov.classList.remove('hidden'); }
+            else { sb.classList.add('-translate-x-full'); ov.classList.add('hidden'); }
+        }
+
+        function closeMobileNav() {
+            const sb = document.getElementById('app-sidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            if (sb) sb.classList.add('-translate-x-full');
+            if (ov) ov.classList.add('hidden');
+        }
+
+        async function api(path, options = {}) {
+            const opts = { credentials: 'include', ...options };
+            if (!opts.headers) opts.headers = {};
+            if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
+                opts.headers['Content-Type'] = 'application/json';
+                opts.body = JSON.stringify(opts.body);
+            }
+            return fetch(path, opts);
+        }
+
+        function writeLog(m) {
+            const el = term();
+            if (!el) return;
+            const time = new Date().toLocaleTimeString();
+            el.innerHTML += `<div class="flex gap-3"><span class="text-slate-600 text-[9px]">${time}</span><span>&gt; ${escapeHtml(m)}</span></div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function showView(which) {
+            document.getElementById('view-login').classList.toggle('hidden', which !== 'login');
+            document.getElementById('view-app').classList.toggle('hidden', which !== 'app');
+        }
+
+        function showSection(name) {
+            currentSectionName = name;
+            document.querySelectorAll('.cluster-root').forEach((el) => {
+                el.classList.toggle('is-active', el.id === 'section-' + name);
+            });
+            document.querySelectorAll('.nav-btn[data-section]').forEach((btn) => {
+                const on = btn.getAttribute('data-section') === name;
+                btn.classList.toggle('text-white', on);
+                btn.classList.toggle('bg-slate-800', on);
+                btn.classList.toggle('text-slate-400', !on);
+            });
+            if (name === 'cluster-analytics') {
+                openHubTab('analytics', 'dash');
+                loadDashboardCharts();
+                loadReportsChart();
+            }
+            if (name === 'cluster-data') {
+                openHubTab('data', 'lists');
+                loadListSummary();
+                loadContactsTable();
+                loadSuppressionTable();
+                loadUsersTable();
+            }
+            if (name === 'cluster-workflow') {
+                loadContactLists();
+                loadTemplatesDropdown();
+                campaignWizardGo(0);
+            }
+            if (name === 'cluster-studio') {
+                openHubTab('studio', 'lib');
+                loadTemplatesForGrid();
+                loadOrgSettings();
+            }
+            if (name === 'cluster-specialty') {
+                openHubTab('specialty', 'seg');
+                loadSegmentPreview();
+            }
+        }
+
+        document.querySelectorAll('aside nav button[data-section]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                showSection(btn.getAttribute('data-section'));
+                closeMobileNav();
+            });
+        });
+
+        function openHubTab(hub, tab) {
+            document.querySelectorAll('.hub-tab-btn[data-hub="' + hub + '"]').forEach((b) => {
+                const on = b.getAttribute('data-tab') === tab;
+                b.classList.toggle('bg-slate-900', on);
+                b.classList.toggle('text-white', on);
+                b.classList.toggle('bg-slate-100', !on);
+                b.classList.toggle('text-slate-700', !on);
+            });
+            const map = {
+                data: { lists: 'hub-data-lists', audience: 'hub-data-audience', suppression: 'hub-data-suppression', users: 'hub-data-users' },
+                analytics: { dash: 'hub-analytics-dash', insights: 'hub-analytics-insights', creport: 'hub-analytics-creport' },
+                studio: { lib: 'hub-studio-lib', org: 'hub-studio-org' },
+                specialty: { seg: 'hub-specialty-seg', editor: 'hub-specialty-editor' },
+            };
+            const panels = map[hub];
+            if (!panels) return;
+            Object.entries(panels).forEach(([key, domId]) => {
+                const el = document.getElementById(domId);
+                if (el) el.classList.toggle('is-open', key === tab);
+            });
+            if (hub === 'specialty' && tab === 'editor') initQuillTemplate();
+            if (hub === 'analytics' && tab === 'insights') loadReportsChart();
+            if (hub === 'analytics' && tab === 'creport') loadReportCampaignSelect();
+        }
+
+        document.querySelectorAll('.hub-tab-btn').forEach((btn) => {
+            btn.addEventListener('click', () => openHubTab(btn.getAttribute('data-hub'), btn.getAttribute('data-tab')));
+        });
+
+        document.querySelectorAll('.wf-main-tab').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const w = btn.getAttribute('data-wf');
+                document.querySelectorAll('.wf-main-tab').forEach((b) => {
+                    const on = b.getAttribute('data-wf') === w;
+                    b.classList.toggle('bg-slate-900', on);
+                    b.classList.toggle('text-white', on);
+                    b.classList.toggle('bg-slate-100', !on);
+                    b.classList.toggle('text-slate-700', !on);
+                });
+                document.getElementById('wf-campaign').classList.toggle('hidden', w !== 'campaign');
+                document.getElementById('wf-import').classList.toggle('hidden', w !== 'import');
+            });
+        });
+
+        function campaignWizardStep(delta) {
+            const next = Math.max(0, Math.min(3, campaignWizStep + delta));
+            campaignWizardGo(next);
+        }
+
+        function campaignWizardGo(step) {
+            campaignWizStep = step;
+            for (let i = 0; i < 4; i++) {
+                const p = document.getElementById('camp-step-' + i);
+                if (p) p.classList.toggle('is-open', i === step);
+            }
+            document.getElementById('camp-wiz-num').textContent = String(step + 1);
+            document.getElementById('camp-wiz-progress').style.width = ((step + 1) / 4 * 100) + '%';
+            const back = document.getElementById('camp-wiz-back');
+            const next = document.getElementById('camp-wiz-next');
+            if (back) back.disabled = step === 0;
+            if (next) next.textContent = step === 3 ? 'Done' : 'Next';
+            if (step === 3) updateCampSummary();
+            if (step === 2) initQuillCampaign();
+        }
+
+        const campNext = document.getElementById('camp-wiz-next');
+        if (campNext) {
+            campNext.addEventListener('click', () => {
+                if (campaignWizStep < 3) campaignWizardStep(1);
+            });
+        }
+
+        function updateCampSummary() {
+            const n = document.getElementById('camp-wiz-name').value;
+            const s = document.getElementById('camp-wiz-subject').value;
+            const lst = document.getElementById('camp-wiz-list');
+            const ln = lst.options[lst.selectedIndex]?.text || 'All active';
+            document.getElementById('camp-wiz-summary').textContent =
+                `Name: ${n}\\nSubject: ${s}\\nList: ${ln}\\n`;
+        }
+
+        function importWizardStep(delta) {
+            importStep = Math.max(0, Math.min(2, importStep + delta));
+            for (let i = 0; i < 3; i++) {
+                const p = document.getElementById('imp-step-' + i);
+                if (p) {
+                    p.classList.toggle('hidden', i !== importStep);
+                    p.classList.toggle('is-open', i === importStep);
+                }
+            }
+            document.getElementById('imp-step-num').textContent = String(importStep + 1);
+            document.getElementById('imp-progress').style.width = ((importStep + 1) / 3 * 100) + '%';
+        }
+
+        function onCsvFile(ev) {
+            const f = ev.target.files[0];
+            if (!f) return;
+            document.getElementById('fileNameDisplay').textContent = f.name;
+            const r = new FileReader();
+            r.onload = () => {
+                csvRawText = r.result;
+                buildCsvPreview();
+            };
+            r.readAsText(f);
+        }
+
+        function buildCsvPreview() {
+            const lines = csvRawText.split(/\r?\n/).filter((l) => l.trim());
+            const rows = lines.slice(0, 10).map((l) => l.split(','));
+            const head = document.getElementById('imp-preview-head');
+            const body = document.getElementById('imp-preview-body');
+            if (!rows.length) { head.innerHTML = ''; body.innerHTML = ''; return; }
+            head.innerHTML = '<tr>' + rows[0].map((c) => '<th class="px-2 py-1 border">' + escapeHtml(c.trim()) + '</th>').join('') + '</tr>';
+            body.innerHTML = rows.slice(1).map((line) =>
+                '<tr>' + line.map((c) => '<td class="px-2 py-1 border">' + escapeHtml(c.trim()) + '</td>').join('') + '</tr>'
+            ).join('');
+        }
+
+        async function checkSession() {
+            const res = await api('/api/me');
+            if (res.ok) {
+                const u = await res.json();
+                document.getElementById('hdr-name').textContent = u.email || 'User';
+                document.getElementById('hdr-role').textContent = (u.role || '') + ' · MailPulse';
+                showView('app');
+                showSection('cluster-analytics');
+                openHubTab('analytics', 'dash');
+                updateStats();
+                processDue();
+                loadContactLists();
+                loadTemplatesDropdown();
+                loadDashboardCharts();
+                fillOrgLists();
+                return;
+            }
+            showView('login');
+        }
+
+        async function doLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const err = document.getElementById('login-error');
+            err.classList.add('hidden');
+            const res = await api('/login', { method: 'POST', body: { email, password } });
+            if (!res.ok) {
+                const d = await res.json().catch(() => ({}));
+                err.textContent = d.error || 'Login failed';
+                err.classList.remove('hidden');
+                return;
+            }
+            await checkSession();
+        }
+
+        async function doLogout() {
+            await api('/logout', { method: 'POST' });
+            currentCampaignId = null;
+            showView('login');
+        }
+
+        async function updateStats() {
+            const res = await api('/stats');
+            if (!res.ok) return;
+            const data = await res.json();
+            window.__lastStats = data;
+        }
+
+        async function loadDashboardCharts() {
+            const res = await api('/stats');
+            const met = await api('/reports/dashboard-metrics');
+            if (!res.ok || !met.ok) return;
+            const s = await res.json();
+            const m = await met.json();
+            const kpi = document.getElementById('kpi-mount');
+            if (kpi) {
+                kpi.innerHTML =
+                    KPICard('Total Reach', s.total_contacts) +
+                    KPICard('Active', s.active_contacts) +
+                    KPICard('Unsubscribed', s.unsubscribed) +
+                    KPICard('Open rate', m.open_rate + '%', 'unique opens / sent') +
+                    KPICard('Click rate', m.click_rate + '%', 'unique clicks / sent');
+            }
+            const ctxb = document.getElementById('chart-dash-bar');
+            if (ctxb) {
+                if (chartDashBar) chartDashBar.destroy();
+                chartDashBar = new Chart(ctxb, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Sent', 'Unique opens', 'Unique clicks'],
+                        datasets: [{
+                            data: [m.sent, m.unique_opens, m.unique_clicks],
+                            backgroundColor: ['#312e81', '#10b981', '#6366f1'],
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } },
+                    },
+                });
+            }
+            const ctxr = document.getElementById('chart-dash-rate');
+            if (ctxr) {
+                if (chartDashRate) chartDashRate.destroy();
+                chartDashRate = new Chart(ctxr, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Open rate', 'Remainder'],
+                        datasets: [{
+                            data: [m.open_rate, Math.max(0, 100 - m.open_rate)],
+                            backgroundColor: ['#4f46e5', '#e2e8f0'],
+                        }],
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
+                });
+            }
+        }
+
+        async function processDue() {
+            const res = await api('/campaigns/process-due', { method: 'POST' });
+            if (res.ok) {
+                const d = await res.json();
+                if (d.processed > 0) writeLog('Processed ' + d.processed + ' due campaign(s).');
+            }
+        }
+
+        async function loadListSummary() {
+            const res = await api('/contact-lists/summary');
+            const grid = document.getElementById('dt-lists-grid');
+            if (!res.ok || !grid) return;
+            const rows = await res.json();
+            grid.innerHTML = rows.map((r) =>
+                `<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="font-black text-slate-900">${escapeHtml(r.name)}</p>
+                    <p class="text-2xl font-black text-indigo-600 mt-2">${r.contact_count}</p>
+                    <p class="text-[10px] text-slate-400 uppercase">contacts</p>
+                </div>`
+            ).join('');
+        }
+
+        function fillOrgLists() {
+            api('/contact-lists').then((r) => r.json()).then((rows) => {
+                const sel = document.getElementById('contacts-list-filter');
+                if (!sel) return;
+                const v = sel.value;
+                sel.innerHTML = '<option value="">All lists</option>';
+                rows.forEach((x) => {
+                    const o = document.createElement('option');
+                    o.value = x.id;
+                    o.textContent = x.name;
+                    sel.appendChild(o);
+                });
+                if ([...sel.options].some((o) => o.value === v)) sel.value = v;
+            });
+        }
+
+        function debouncedLoadContacts() {
+            clearTimeout(contactsSearchDebounce);
+            contactsSearchDebounce = setTimeout(loadContactsTable, 300);
+        }
+
+        async function loadContactsTable() {
+            const q = document.getElementById('contacts-search').value.trim();
+            const st = document.getElementById('contacts-status-filter').value;
+            const lid = document.getElementById('contacts-list-filter').value;
+            const params = new URLSearchParams();
+            if (q) params.set('q', q);
+            if (st) params.set('status', st);
+            if (lid) params.set('contact_list_id', lid);
+            const res = await api('/contacts?' + params.toString());
+            const meta = document.getElementById('contacts-table-meta');
+            if (!res.ok) return;
+            const data = await res.json();
+            const rows = data.contacts || [];
+            lastAudienceRows = rows;
+            renderDataTable('contacts-table-body', 4, rows, (c) => {
+                const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || '—';
+                const badge = c.status === 'active' ? 'text-emerald-700 bg-emerald-50' : c.status === 'bounced' ? 'text-amber-800 bg-amber-50' : 'text-red-700 bg-red-50';
+                return `<tr class="hover:bg-slate-50/80"><td class="px-4 py-2.5 font-medium">${escapeHtml(c.email)}</td><td class="px-4 py-2.5">${escapeHtml(name)}</td><td class="px-4 py-2.5">${escapeHtml(c.contact_list_name)}</td><td class="px-4 py-2.5"><span class="text-xs font-bold uppercase px-2 py-1 rounded-lg ${badge}">${escapeHtml(c.status)}</span></td></tr>`;
+            });
+            if (meta) meta.textContent = rows.length + ' contact(s)' + (rows.length >= 500 ? ' (max 500)' : '');
+        }
+
+        function exportAudienceCsv() {
+            if (!lastAudienceRows.length) return alert('No rows');
+            const h = 'email,first_name,last_name,status,contact_list\n';
+            const b = lastAudienceRows.map((c) =>
+                [c.email, c.first_name, c.last_name, c.status, c.contact_list_name]
+                    .map((x) => '"' + String(x).replace(/"/g, '""') + '"')
+                    .join(',')
+            ).join('\n');
+            const blob = new Blob([h + b], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'audience.csv';
+            a.click();
+        }
+
+        function debouncedLoadSuppression() {
+            clearTimeout(supSearchDebounce);
+            supSearchDebounce = setTimeout(loadSuppressionTable, 300);
+        }
+
+        async function loadSuppressionTable() {
+            const q = document.getElementById('sup-search').value.trim();
+            const params = new URLSearchParams({ status_in: 'bounced,unsubscribed' });
+            if (q) params.set('q', q);
+            const res = await api('/contacts?' + params.toString());
+            if (!res.ok) return;
+            const rows = (await res.json()).contacts || [];
+            renderDataTable('sup-table-body', 3, rows, (c) =>
+                `<tr><td class="px-4 py-2">${escapeHtml(c.email)}</td><td class="px-4 py-2">${escapeHtml(c.status)}</td><td class="px-4 py-2">
+                    <button type="button" class="text-indigo-600 font-bold text-xs" onclick="reactivateContact('${c.id}')">Reactivate</button>
+                </td></tr>`
+            );
+        }
+
+        async function reactivateContact(id) {
+            const res = await api('/contacts/' + id, { method: 'PATCH', body: { status: 'active' } });
+            if (res.ok) loadSuppressionTable();
+        }
+
+        async function loadUsersTable() {
+            const res = await api('/api/users');
+            const panel = document.getElementById('users-panel');
+            const warn = document.getElementById('users-admin-only');
+            if (res.status === 403) {
+                if (panel) panel.classList.add('hidden');
+                if (warn) warn.classList.remove('hidden');
+                return;
+            }
+            if (warn) warn.classList.add('hidden');
+            if (panel) panel.classList.remove('hidden');
+            if (!res.ok) return;
+            const rows = await res.json();
+            renderDataTable('users-table-body', 4, rows, (u) =>
+                `<tr><td class="px-4 py-2">${escapeHtml(u.email)}</td><td class="px-4 py-2">${escapeHtml(u.role)}</td><td class="px-4 py-2">${u.is_active ? 'Yes' : 'No'}</td><td class="px-4 py-2">
+                    <button type="button" class="text-xs font-bold text-indigo-600 mr-2" onclick="patchUserToggle('${u.id}', ${u.is_active ? 'true' : 'false'})">${u.is_active ? 'Deactivate' : 'Activate'}</button>
+                </td></tr>`
+            );
+        }
+
+        async function inviteUser() {
+            const email = document.getElementById('invite-email').value.trim();
+            const role = document.getElementById('invite-role').value;
+            const out = document.getElementById('invite-result');
+            const res = await api('/api/users', { method: 'POST', body: { email, role } });
+            const d = await res.json().catch(() => ({}));
+            out.textContent = res.ok ? 'Created. Temporary password: ' + (d.temporary_password || '') : (d.error || 'Failed');
+            loadUsersTable();
+        }
+
+        async function patchUserToggle(id, wasActive) {
+            await api('/api/users/' + id, {
+                method: 'PATCH',
+                body: { is_active: !(wasActive === true || wasActive === 'true') },
+            });
+            loadUsersTable();
+        }
+
+        async function loadContactLists() {
+            const res = await api('/contact-lists');
+            if (!res.ok) return;
+            const rows = await res.json();
+            ['camp-wiz-list'].forEach((id) => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                const keep = sel.value;
+                sel.innerHTML = '<option value="">All active contacts</option>';
+                rows.forEach((r) => {
+                    const o = document.createElement('option');
+                    o.value = r.id;
+                    o.textContent = r.name;
+                    sel.appendChild(o);
+                });
+                if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
+            });
+            fillOrgLists();
+        }
+
+        function initQuillTemplate() {
+            if (quillTemplate) return;
+            quillTemplate = new Quill('#editor-template', { theme: 'snow', modules: { toolbar: true } });
+        }
+
+        function initQuillCampaign() {
+            if (quillCampaign) return;
+            quillCampaign = new Quill('#editor-campaign', { theme: 'snow', modules: { toolbar: true } });
+        }
+
+        async function saveTemplate() {
+            initQuillTemplate();
+            const name = document.getElementById('tpl-name').value.trim() || 'Untitled';
+            const html_body = quillTemplate.root.innerHTML;
+            const res = await api('/templates', { method: 'POST', body: { name, html_body } });
+            const data = await res.json().catch(() => ({}));
+            writeLog(data.id ? 'Template saved: ' + data.name : (data.error || 'Save failed'));
+            loadTemplatesDropdown();
+            loadTemplatesForGrid();
+        }
+
+        async function loadTemplatesDropdown() {
+            const res = await api('/templates');
+            if (!res.ok) return;
+            const rows = await res.json();
+            ['camp-wiz-template'].forEach((tid) => {
+                const sel = document.getElementById(tid);
+                if (!sel) return;
+                const keep = sel.value;
+                sel.innerHTML = '<option value="">— None —</option>';
+                rows.forEach((r) => {
+                    const o = document.createElement('option');
+                    o.value = r.id;
+                    o.textContent = r.name;
+                    sel.appendChild(o);
+                });
+                if ([...sel.options].some((o) => o.value === keep)) sel.value = keep;
+            });
+        }
+
+        async function applyWizTemplate() {
+            initQuillCampaign();
+            const id = document.getElementById('camp-wiz-template').value;
+            if (!id) return;
+            const res = await api('/templates/' + id);
+            if (!res.ok) return;
+            const t = await res.json();
+            quillCampaign.setText('');
+            quillCampaign.clipboard.dangerouslyPasteHTML(0, t.html_body || '', 'silent');
+        }
+
+        async function saveCampaignDraft() {
+            initQuillCampaign();
+            const name = document.getElementById('camp-wiz-name').value.trim() || 'Campaign';
+            const subject = document.getElementById('camp-wiz-subject').value.trim();
+            let body_html = quillCampaign.root.innerHTML;
+            const prev = document.getElementById('camp-wiz-preview').value.trim();
+            if (prev) body_html = '<p style="color:#64748b;font-size:13px;margin-bottom:12px">' + escapeHtml(prev) + '</p>' + body_html;
+            const contact_list_id = document.getElementById('camp-wiz-list').value || null;
+            const tplPick = document.getElementById('camp-wiz-template').value || null;
+            let res;
+            if (currentCampaignId) {
+                res = await api('/campaigns/' + currentCampaignId, {
+                    method: 'PATCH',
+                    body: { name, subject, body_html, contact_list_id, template_id: tplPick },
+                });
+            } else {
+                res = await api('/campaigns', { method: 'POST', body: { name, subject, body_html, contact_list_id, template_id: tplPick } });
+            }
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                if (!currentCampaignId && data.id) currentCampaignId = data.id;
+                const hint = document.getElementById('camp-id-hint');
+                if (hint) hint.textContent = 'Campaign id: ' + currentCampaignId;
+                writeLog('Campaign saved.');
+            } else {
+                const hint = document.getElementById('camp-id-hint');
+                if (hint) hint.textContent = data.error || 'Save failed';
+                writeLog(data.error || 'Save failed');
+            }
+        }
+
+        async function scheduleCampaign() {
+            if (!currentCampaignId) {
+                await saveCampaignDraft();
+                if (!currentCampaignId) return alert('Save draft first.');
+            }
+            const local = document.getElementById('camp-wiz-schedule').value;
+            if (!local) return alert('Pick schedule date/time.');
+            const iso = new Date(local).toISOString();
+            const res = await api('/campaigns/' + currentCampaignId + '/schedule', { method: 'POST', body: { scheduled_at: iso } });
+            const data = await res.json().catch(() => ({}));
+            writeLog(data.status ? 'Scheduled: ' + data.status : (data.error || 'Failed'));
+        }
+
+        async function sendCampaignNow() {
+            initQuillCampaign();
+            if (!currentCampaignId) {
+                await saveCampaignDraft();
+                if (!currentCampaignId) return alert('Save draft first.');
+            }
+            await api('/campaigns/' + currentCampaignId, {
+                method: 'PATCH',
+                body: {
+                    subject: document.getElementById('camp-wiz-subject').value.trim(),
+                    body_html: quillCampaign.root.innerHTML,
+                    contact_list_id: document.getElementById('camp-wiz-list').value || null,
+                },
+            });
+            const res = await api('/campaigns/' + currentCampaignId + '/send-now', { method: 'POST' });
+            const data = await res.json().catch(() => ({}));
+            writeLog(data.msg || data.error || 'Send finished');
+            updateStats();
+        }
+
+        async function loadReportsChart() {
+            const [resSum, resAct] = await Promise.all([api('/reports/summary'), api('/reports/activity')]);
+            const feed = document.getElementById('reports-activity-feed');
+            if (feed && resAct.ok) {
+                const act = await resAct.json();
+                const items = act.items || [];
+                feed.innerHTML = items.length
+                    ? items.map((it) => {
+                        const t = it.created_at ? new Date(it.created_at).toLocaleString() : '';
+                        return `<li class="px-4 py-2 border-b border-slate-100"><span class="text-slate-800">Opened <strong>${escapeHtml(it.email)}</strong></span> <span class="text-xs text-slate-400">${escapeHtml(t)}</span></li>`;
+                    }).join('')
+                    : '<li class="px-4 py-3 text-slate-500">No open events yet.</li>';
+            }
+            if (!resSum.ok) return;
+            const data = await resSum.json();
+            const ctx = document.getElementById('chart-reports');
+            if (!ctx) return;
+            if (reportChart) reportChart.destroy();
+            reportChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Total Sent', 'Total Opened'],
+                    datasets: [{ data: [data.sent || 0, data.opened || 0], backgroundColor: ['#312e81', '#10b981'] }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } },
+                },
+            });
+        }
+
+        async function loadReportCampaignSelect() {
+            const res = await api('/campaigns');
+            if (!res.ok) return;
+            const rows = await res.json();
+            const sel = document.getElementById('report-campaign-pick');
+            if (!sel) return;
+            sel.innerHTML = rows.map((c) => `<option value="${c.id}">${escapeHtml(c.name)} — ${escapeHtml(c.status)}</option>`).join('');
+        }
+
+        async function loadCampaignReport() {
+            const id = document.getElementById('report-campaign-pick').value;
+            const box = document.getElementById('campaign-report-box');
+            if (!id || !box) return;
+            const res = await api('/campaigns/' + id + '/report');
+            if (!res.ok) return;
+            const r = await res.json();
+            box.innerHTML = `<p><strong>Campaign:</strong> ${escapeHtml(r.name)}</p>
+                <p><strong>Sent:</strong> ${r.sent} &nbsp; <strong>Unique opens:</strong> ${r.unique_opens} &nbsp; <strong>Unique clicks:</strong> ${r.unique_clicks}</p>
+                <p><strong>Open rate:</strong> ${r.open_rate}% &nbsp; <strong>Click rate:</strong> ${r.click_rate}%</p>`;
+        }
+
+        let templateListCache = [];
+
+        async function loadTemplatesForGrid() {
+            const res = await api('/templates');
+            if (!res.ok) return;
+            templateListCache = await res.json();
+            renderTemplateGrid();
+        }
+
+        function renderTemplateGrid() {
+            const q = (document.getElementById('tpl-lib-search')?.value || '').toLowerCase();
+            const grid = document.getElementById('template-grid');
+            if (!grid) return;
+            const rows = templateListCache.filter((t) => !q || (t.name || '').toLowerCase().includes(q));
+            grid.innerHTML = rows.map((t) =>
+                `<div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="font-bold text-slate-900">${escapeHtml(t.name)}</p>
+                    <p class="text-[10px] text-slate-400 mt-2 line-clamp-3">${escapeHtml((t.html_body || '').replace(/<[^>]+>/g, ' ').slice(0, 120))}</p>
+                </div>`
+            ).join('') || '<p class="text-slate-500">No templates.</p>';
+        }
+
+        async function seedStarters() {
+            const res = await api('/templates/seed-starters', { method: 'POST' });
+            const d = await res.json().catch(() => ({}));
+            writeLog(d.msg || 'Seeded ' + (d.created || 0));
+            loadTemplatesForGrid();
+            loadTemplatesDropdown();
+        }
+
+        async function loadOrgSettings() {
+            const res = await api('/organization/settings');
+            if (!res.ok) return;
+            const o = await res.json();
+            document.getElementById('org-name').value = o.org_name || '';
+            document.getElementById('org-logo').value = o.logo_url || '';
+            document.getElementById('org-from-name').value = o.default_from_name || '';
+            document.getElementById('org-from-email').value = o.default_from_email || '';
+            document.getElementById('org-ses-region').value = o.aws_ses_region || '';
+            document.getElementById('org-ses-note').value = o.aws_ses_note || '';
+        }
+
+        async function saveOrgSettings() {
+            const body = {
+                org_name: document.getElementById('org-name').value,
+                logo_url: document.getElementById('org-logo').value,
+                default_from_name: document.getElementById('org-from-name').value,
+                default_from_email: document.getElementById('org-from-email').value,
+                aws_ses_region: document.getElementById('org-ses-region').value,
+                aws_ses_note: document.getElementById('org-ses-note').value,
+            };
+            const res = await api('/organization/settings', { method: 'PATCH', body });
+            writeLog(res.ok ? 'Organisation saved.' : 'Save failed');
+        }
+
+        async function loadSegmentPreview() {
+            const st = document.getElementById('seg-status').value;
+            const res = await api('/segments/preview?status=' + encodeURIComponent(st));
+            if (!res.ok) return;
+            const d = await res.json();
+            document.getElementById('seg-count').textContent = d.count;
+        }
+
+        async function uploadCSV() {
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files[0]) return alert('Select a CSV file.');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('list_name', document.getElementById('list-name').value.trim() || 'Default');
+            const res = await api('/import', { method: 'POST', body: formData });
+            const data = await res.json().catch(() => ({}));
+            writeLog(data.msg || data.error || 'Import done');
+            updateStats();
+            loadContactLists();
+            loadContactsTable();
+            loadListSummary();
+        }
+
+        window.addEventListener('resize', () => {
+            clearTimeout(reportResizeDebounce);
+            reportResizeDebounce = setTimeout(() => {
+                if (reportChart) reportChart.resize();
+                if (chartDashBar) chartDashBar.resize();
+                if (chartDashRate) chartDashRate.resize();
+            }, 100);
+        });
+
+        window.addEventListener('load', () => {
+            document.querySelectorAll('aside nav button[data-section]').forEach((btn) => btn.classList.add('nav-btn'));
+            checkSession();
+            loadReportCampaignSelect();
+            setInterval(() => {
+                if (!document.getElementById('view-app').classList.contains('hidden')) processDue();
+            }, 60000);
+        });
+
+        window.toggleMobileNav = toggleMobileNav;
+        window.closeMobileNav = closeMobileNav;
+        window.doLogin = doLogin;
+        window.doLogout = doLogout;
+        window.loadContactsTable = loadContactsTable;
+        window.debouncedLoadContacts = debouncedLoadContacts;
+        window.exportAudienceCsv = exportAudienceCsv;
+        window.loadSuppressionTable = loadSuppressionTable;
+        window.debouncedLoadSuppression = debouncedLoadSuppression;
+        window.reactivateContact = reactivateContact;
+        window.inviteUser = inviteUser;
+        window.patchUserToggle = patchUserToggle;
+        window.saveTemplate = saveTemplate;
+        window.applyWizTemplate = applyWizTemplate;
+        window.saveCampaignDraft = saveCampaignDraft;
+        window.scheduleCampaign = scheduleCampaign;
+        window.sendCampaignNow = sendCampaignNow;
+        window.uploadCSV = uploadCSV;
+        window.onCsvFile = onCsvFile;
+        window.campaignWizardStep = campaignWizardStep;
+        window.importWizardStep = importWizardStep;
+        window.loadListSummary = loadListSummary;
+        window.seedStarters = seedStarters;
+        window.loadTemplatesForGrid = loadTemplatesForGrid;
+        window.renderTemplateGrid = renderTemplateGrid;
+        window.saveOrgSettings = saveOrgSettings;
+        window.loadSegmentPreview = loadSegmentPreview;
+        window.loadCampaignReport = loadCampaignReport;
+        window.updateStats = updateStats;
+        window.processDue = processDue;
+        window.loadDashboardCharts = loadDashboardCharts;
+    })();
+</script>
+</body>
+
+</html>
